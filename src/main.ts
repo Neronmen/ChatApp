@@ -33,4 +33,4 @@ async function bootstrap() {
   return server;
 }
 
-export default bootstrap();
+export default bootstrap;
