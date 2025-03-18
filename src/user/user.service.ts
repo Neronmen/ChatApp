@@ -4,7 +4,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schema/user.entity';
 import { Model } from 'mongoose';
-const bcrypt = require('bcrypt');
+import { hashPasswordHelper } from 'src/helpers/jwtHelper';
+import { isValidObjectId } from 'mongoose';
 
 @Injectable()
 export class UserService {
@@ -20,8 +21,7 @@ export class UserService {
     if (emailExisted) {
       throw new BadRequestException(`Email ${email} đã tồn tại. Vui lòng nhập email khác`)
     }
-
-    const hashPassword = await this.hashPasswordHelper(password)
+    const hashPassword = await hashPasswordHelper(password)
     const user = await this.userModel.create({
       name,
       email,
@@ -33,6 +33,19 @@ export class UserService {
     return user;
   }
 
+  async getProfile(id: string) {
+    const checkFormatIdMongoDB = isValidObjectId(id)
+    if (!checkFormatIdMongoDB) {
+      throw new BadRequestException(`ID không đúng định dạng MongoDB`);
+    }
+    const user = await this.userModel.findById(id).lean();
+    if (!user) {
+      throw new BadRequestException(`Người dùng ID: ${id} không tồn tại`)
+    }
+    const { password, ...result } = user;
+    return result
+  }
+
 
   checkEmailExisted = async (email: string) => {
     const user = await this.userModel.findOne({ email });
@@ -42,26 +55,9 @@ export class UserService {
 
   findByEmail = async (email: string) => {
     const user = await this.userModel.findOne({ email }).lean();
-    // console.log(user)
     if (!user) return null;
     return user
   }
-
-  hashPasswordHelper = async (plainPassword: string) => {
-    try {
-      return await bcrypt.hash(plainPassword, 10)
-    } catch (error) {
-      return error
-    }
-  }
-
-  comparePasswordHelper = async (plainPassword: string, hashPassword: string) => {
-    try {
-      return await bcrypt.compare(plainPassword, hashPassword);
-    } catch (error) {
-      return error
-    }
-  };
 
 
 }
