@@ -40,6 +40,13 @@ export class UserService {
     return false
   }
 
+  findByEmail = async (email: string) => {
+    const user = await this.userModel.findOne({ email }).lean();
+    // console.log(user)
+    if (!user) return null;
+    return user
+  }
+
   hashPasswordHelper = async (plainPassword: string) => {
     try {
       return await bcrypt.hash(plainPassword, 10)
@@ -48,6 +55,13 @@ export class UserService {
     }
   }
 
+  comparePasswordHelper = async (plainPassword: string, hashPassword: string) => {
+    try {
+      return await bcrypt.compare(plainPassword, hashPassword);
+    } catch (error) {
+      return error
+    }
+  };
 
 
 }

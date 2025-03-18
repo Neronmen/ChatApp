@@ -1,20 +1,20 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { RequestMethod, ValidationPipe } from '@nestjs/common';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
+import {
+  INestApplication,
+  RequestMethod,
+  ValidationPipe,
+} from '@nestjs/common';
 
 async function bootstrap() {
-  const server = express();
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+  const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const port = configService.get('PORT');
 
   app.setGlobalPrefix('api/v1', {
     exclude: [{ path: '', method: RequestMethod.GET }],
   });
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -29,8 +29,6 @@ async function bootstrap() {
     credentials: false
   });
 
-  await app.init();
-  return server;
+  await app.listen(port ?? 3000);
 }
-
-export default bootstrap;
+bootstrap();
