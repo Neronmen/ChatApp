@@ -22,12 +22,12 @@ export class AuthService {
     return {
       user,
       backendTokens: {
-        accessToken: await this.jwtService.sign(payload, {
-          expiresIn: process.env.SECRET_KEY_EXPIRED,
+        accessToken: await this.jwtService.signAsync(payload, {
+          expiresIn: '20s',
           secret: process.env.SECRET_KEY,
         }),
-        refreshToken: await this.jwtService.sign(payload, {
-          expiresIn: process.env.SECRET_KEY_EXPIRED,
+        refreshToken: await this.jwtService.signAsync(payload, {
+          expiresIn: '7d',
           secret: process.env.SECRET_KEY_REFRESH,
         }),
         expiresIn: new Date().setTime(new Date().getTime() + EXPIRE_TIME),
