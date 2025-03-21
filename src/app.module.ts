@@ -7,6 +7,8 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { EventsModule } from './socket.io/events.module';
 import { ChatModule } from './chat/chat.module';
+import { RequestAddFriendModule } from './request_add_friend/request_add_friend.module';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
   imports: [
@@ -14,6 +16,7 @@ import { ChatModule } from './chat/chat.module';
     AuthModule,
     EventsModule,
     ChatModule,
+    RequestAddFriendModule,
 
     // Config Env
     ConfigModule.forRoot({
@@ -29,7 +32,8 @@ import { ChatModule } from './chat/chat.module';
       }),
       inject: [ConfigService],
     }),
-    ChatModule,
+    FriendsModule,
+
 
     // End Connect Database MongoDB
 

@@ -13,13 +13,7 @@ import { User } from "src/user/schema/user.entity";
 import { UserService } from "src/user/user.service";
 
 
-import * as fs from "fs";
 
-// Đường dẫn ảnh (Sử dụng / hoặc \\)
-const imagePath = "C:/Users/pnkvl/Pictures/neronmen.jpg";
-
-// Đọc ảnh thành Buffer
-const imageBuffer = fs.readFileSync(imagePath);
 
 @WebSocketGateway(3002, { cors: true })
 export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
@@ -71,8 +65,7 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
     @SubscribeMessage('newMessage')
     async handleNewMessage(client: Socket, messages, request: Request): Promise<any> {
         const objectMessage = JSON.parse(messages)
-        console.log(objectMessage)
-        console.log(imageBuffer)
+
         const userID = client.data.user._id;
         let imagesUrl: any = [];
         if (objectMessage?.images) {
