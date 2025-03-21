@@ -13,7 +13,8 @@ export class ChatService {
         private readonly userService: UserService
     ) { }
     async createChat(message: CreateChatDto) {
-        const { userID, content, images } = message
+        const { userID, content,images} = message;
+       
         const checkFormatIdMongoDB = isValidObjectId(userID)
         if (!checkFormatIdMongoDB) {
             throw new BadRequestException(`UserID không đúng định dạng mongoDB`)
@@ -22,7 +23,11 @@ export class ChatService {
         if (!user) {
             throw new BadRequestException(`User không tồn tại`)
         }
-        const newChat = await this.chatModel.create(message);
+        const newChat = await this.chatModel.create({
+            userID,
+            content,
+            images
+        });
         return newChat
     }
 
