@@ -35,10 +35,11 @@ export class ChatService {
         const allChats = await this.chatModel.find().lean();
         const result = await Promise.all(allChats.map(async (chat) => {
             const user = await this.userService.findById(chat.userID.toString());
-            const { image, ...result } = user || {};
+            const { image,name, ...result } = user || {};
             return {
                 ...chat,
                 image,
+                name
             };
         }));
 
