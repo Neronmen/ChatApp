@@ -28,9 +28,10 @@ export class UserService {
       password: hashPassword,
       phone,
       address,
-      image
+      image: "/avatar.jpg"
     })
-    return user;
+    const result = await this.userModel.findById(user._id).select("-password")
+    return result;
   }
 
   async getProfile(id: string) {
@@ -55,6 +56,13 @@ export class UserService {
 
   findByEmail = async (email: string) => {
     const user = await this.userModel.findOne({ email }).lean();
+    if (!user) return null;
+    return user
+  }
+
+
+  findById = async (id: string) => {
+    const user = await this.userModel.findById(id).lean();
     if (!user) return null;
     return user
   }

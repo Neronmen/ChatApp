@@ -13,6 +13,7 @@ export class User {
 
     @Prop()
     password: string;
+
     @Prop({ default: false })
     isActive: boolean;
 
@@ -24,6 +25,7 @@ export class User {
 
     @Prop()
     phone: string;
+    
 
     @Prop()
     address: string;

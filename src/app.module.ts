@@ -5,11 +5,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { EventsModule } from './socket.io/events.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
     UserModule,
     AuthModule,
+    EventsModule,
+    ChatModule,
 
     // Config Env
     ConfigModule.forRoot({
@@ -25,6 +29,7 @@ import { AuthModule } from './auth/auth.module';
       }),
       inject: [ConfigService],
     }),
+    ChatModule,
 
     // End Connect Database MongoDB
 
