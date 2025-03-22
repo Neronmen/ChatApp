@@ -28,12 +28,11 @@ export class RequestAddFriendService {
       throw new BadRequestException(`User không tồn tại trong hệ thống`)
     }
     const isExist = await this.requestModel.find({
-      where: {
-        sender_id: senderID,
-        receiver_id: receiverID
-      }
+      sender_id: senderID,
+      receiver_id: receiverID
     })
-    if (isExist) {
+    console.log(isExist)
+    if (isExist.length > 0) {
       throw new BadRequestException(`Đã gửi lời mời kết bạn`)
     }
     const request = await this.requestModel.create({
@@ -44,7 +43,6 @@ export class RequestAddFriendService {
   }
 
   async getRequestsById(id: string, status: FriendRequestQueryDto) {
-    console.log(id, status)
     const checkFormatIdMongoDB = isValidObjectId(id);
     if (!checkFormatIdMongoDB) {
       throw new BadRequestException(`ID không đúng định dạng mongoDB`)
@@ -59,7 +57,6 @@ export class RequestAddFriendService {
     if (status != undefined) {
       condition.status = status
     }
-    console.log(condition)
     const listRequests = await this.requestModel.find(condition)
 
     return listRequests

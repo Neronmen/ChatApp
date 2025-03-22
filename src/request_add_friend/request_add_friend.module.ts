@@ -5,6 +5,7 @@ import { UserModule } from 'src/user/user.module';
 import { UserService } from 'src/user/user.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RequestAddFriend, RequestAddFriendSchema } from './schema/request_add_friend.schema';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { RequestAddFriend, RequestAddFriendSchema } from './schema/request_add_f
     UserModule
   ],
   controllers: [RequestAddFriendController],
-  providers: [RequestAddFriendService],
+  providers: [RequestAddFriendService, JwtService],
+  exports: [RequestAddFriendService]
 })
 export class RequestAddFriendModule { }

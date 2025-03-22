@@ -64,7 +64,8 @@ export class UserService {
   findById = async (id: string) => {
     const user = await this.userModel.findById(id).lean();
     if (!user) return null;
-    return user
+    const {password,...result} = user
+    return result
   }
 
 

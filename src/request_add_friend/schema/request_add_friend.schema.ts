@@ -13,6 +13,9 @@ export class RequestAddFriend {
 
     @Prop({ type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' })
     status: string;
+
+    @Prop({ type: Boolean, default: 'false' })
+    isRead: boolean;
 }
 
 export const RequestAddFriendSchema = SchemaFactory.createForClass(RequestAddFriend);

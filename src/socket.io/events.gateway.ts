@@ -9,6 +9,8 @@ import { JWTGuard } from "src/auth/guards/jwt.guard";
 import { ChatService } from "src/chat/chat.service";
 import { CreateChatDto } from "src/chat/dto/create-chat.dto";
 import { uploadToCloudinary } from "src/helpers/uploadToCloundinary";
+import { CreateRequestAddFriendDto } from "src/request_add_friend/dto/create-request_add_friend.dto";
+import { RequestAddFriendService } from "src/request_add_friend/request_add_friend.service";
 import { User } from "src/user/schema/user.entity";
 import { UserService } from "src/user/user.service";
 
@@ -19,10 +21,12 @@ import { UserService } from "src/user/user.service";
 export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer() server: Server
     private usersInRoom: any[] = [];
+    private usersIdSocket = new Map<string, string[]>();
     constructor(
         private readonly chatService: ChatService,
         private readonly userService: UserService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        private readonly requestAddFriendService: RequestAddFriendService,
     ) { }
 
 
@@ -42,6 +46,12 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
         if (!isExist) {
             this.usersInRoom.push(user);
         }
+
+        // Lưu socketId vào danh sách
+        const sockets = this.usersIdSocket.get(user._id.toString()) || [];
+        sockets.push(client.id);
+        this.usersIdSocket.set(user._id.toString(), sockets);
+
         client.data.user = user;
         // client.emit("room-users", this.usersInRoom)
         this.server.emit('user-join', {
@@ -55,6 +65,19 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
     handleDisconnect(client: Socket) {
         const user = client.data.user;
         if (!user) return
+
+        // Xóa socketId của user
+        const userId = user._id.toString();
+        const sockets = this.usersIdSocket.get(userId) || [];
+        const newSockets = sockets.filter(socketId => socketId !== client.id);
+        if (newSockets.length > 0) {
+            this.usersIdSocket.set(userId, newSockets);
+        } else {
+            this.usersIdSocket.delete(userId);
+            this.usersInRoom = this.usersInRoom.filter((u) => u._id != userId);
+        }
+
+
         this.usersInRoom = this.usersInRoom.filter((u) => u._id != user._id.toString());
         client.broadcast.emit('user-left', user)
     }
@@ -90,4 +113,51 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
         })
     }
     // End Gửi tin nhắn 
+
+
+
+    // Gửi lời mời kết bạn
+    @SubscribeMessage('requestAddFriend')
+    async handleRequestAddFriend(client: Socket, dataRequest: CreateRequestAddFriendDto) {
+        try {
+            const parsedData = typeof dataRequest === "string" ? JSON.parse(dataRequest) : dataRequest;
+            const token = client.handshake.headers?.token as string;
+            if (!token || token === undefined) {
+                console.log("Không có token, từ chối kết nối.");
+                client.disconnect()
+                return;
+            }
+            const { senderID, receiverID } = parsedData
+            const result = await this.requestAddFriendService.requestAddFriend(parsedData);
+            console.log(result)
+            const receiverSockets = this.usersIdSocket.get(receiverID);
+            const userSender = await this.userService.findById(senderID);
+            if (userSender) {
+                const { image, name, _id } = userSender
+                const resultTotal = {
+                    sender: {
+                        _id,
+                        image,
+                        name
+                    },
+                    message: `${userSender?.name} đã gửi lời mới kết bạn`,
+                    status: 200
+                }
+                if (receiverSockets) {
+                    this.server.to(receiverSockets).emit('receiveRequest', resultTotal);
+                }
+            }
+
+
+        } catch (error) {
+            console.error("Lỗi khi gửi lời mời kết bạn:", error.message);
+            client.emit('error', {
+                message: error.message || 'Có lỗi xảy ra, vui lòng thử lại!',
+                code: error.status || 500, // Nếu error có mã lỗi (ví dụ: 400), sử dụng nó, mặc định 500
+            });
+        }
+
+
+
+    }
 }
