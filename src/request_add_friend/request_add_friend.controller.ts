@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Put, UseGuards, Request } from '@nestjs/common';
 import { RequestAddFriendService } from './request_add_friend.service';
 import { CreateRequestAddFriendDto } from './dto/create-request_add_friend.dto';
 import { FriendRequestQueryDto } from './dto/status.dto';
@@ -28,14 +28,24 @@ export class RequestAddFriendController {
     return await this.requestAddFriendService.getRequestsById(id, status)
   }
 
+  @UseGuards(JWTGuard)
+  @Put(':id')
+  async isRead(@Param('id') id: string, @Request() req) {
+    return await this.requestAddFriendService.isReadRequest(id, req)
+  }
 
 
-  // @Put(':id')
-  // async up(@Param('id') id: string, @Query('status') status: FriendRequestQueryDto) {
+  @UseGuards(JWTGuard)
+  @Put('/accept/:id')
+  async acceptRequest(@Param('id') id: string, @Request() req) {
+    return await this.requestAddFriendService.acceptRequest(id, req)
+  }
 
-  //   return await this.requestAddFriendService.getRequestsById(id, status)
-  // }
 
-
+  @UseGuards(JWTGuard)
+  @Put('/reject/:id')
+  async rejectRequest(@Param('id') id: string, @Request() req) {
+    return await this.requestAddFriendService.rejectRequest(id, req)
+  }
 
 }

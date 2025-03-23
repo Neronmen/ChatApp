@@ -5,11 +5,14 @@ import { UserService } from 'src/user/user.service';
 import { RequestAddFriend } from './schema/request_add_friend.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { FriendRequestQueryDto } from './dto/status.dto';
+import { Request } from 'express';
+import { FriendsService } from 'src/friends/friends.service';
 
 @Injectable()
 export class RequestAddFriendService {
   constructor(
     private readonly userService: UserService,
+    private readonly friendService: FriendsService,
     @InjectModel(RequestAddFriend.name)
     private readonly requestModel: Model<RequestAddFriend>,
   ) { }
@@ -31,7 +34,6 @@ export class RequestAddFriendService {
       sender_id: senderID,
       receiver_id: receiverID
     })
-    console.log(isExist)
     if (isExist.length > 0) {
       throw new BadRequestException(`Đã gửi lời mời kết bạn`)
     }
@@ -63,6 +65,92 @@ export class RequestAddFriendService {
   }
 
 
+  async isReadRequest(id: string, req) {
+    const checkFormatIdMongoDB = isValidObjectId(id);
+    if (!checkFormatIdMongoDB) {
+      throw new BadRequestException(`ID không đúng định dạng mongoDB`)
+    }
+    const user = await this.userService.findByEmail(req.user.username);
 
+    if (user) {
+      const request = await this.requestModel.find({ _id: id, receiver_id: user._id.toString() });
+      if (request.length === 0) {
+        throw new BadRequestException(`Không tìm thấy lời mời kết bạn này`)
+      }
+      const result = await this.requestModel.updateOne({ _id: id }, {
+        isRead: true
+      })
+      if (!result) {
+        throw new BadRequestException(`Update không thành công`)
+      }
+      return result
+    }
+  }
+
+
+
+  async acceptRequest(id: string, req) {
+    try {
+      const checkFormatIdMongoDB = isValidObjectId(id);
+      if (!checkFormatIdMongoDB) {
+        throw new BadRequestException(`ID không đúng định dạng mongoDB`)
+      }
+      const user = await this.userService.findByEmail(req.user.username);
+      const request: any = await this.requestModel.findOne({
+        _id: id,
+        receiver_id: user?._id.toString()
+      }).lean()
+      if (!request) {
+        throw new BadRequestException('Không tìm thấy lời mời kết bạn này')
+      }
+      await this.requestModel.updateOne({
+        _id: id
+      }, {
+        status: 'accepted'
+      })
+
+      await this.friendService.createFriend({
+        userID: request.sender_id,
+        friendID: request.receiver_id
+      })
+      return {
+        status: 200,
+        message: 'Kết bạn thành công',
+      }
+    } catch (error) {
+      console.log(error)
+      throw new BadRequestException(error)
+    }
+  }
+
+
+  async rejectRequest(id: string, req) {
+    try {
+      const checkFormatIdMongoDB = isValidObjectId(id);
+      if (!checkFormatIdMongoDB) {
+        throw new BadRequestException(`ID không đúng định dạng mongoDB`)
+      }
+      const user = await this.userService.findByEmail(req.user.username);
+      const request: any = await this.requestModel.findOne({
+        _id: id,
+        receiver_id: user?._id.toString()
+      }).lean()
+      if (!request) {
+        throw new BadRequestException('Không tìm thấy lời mời kết bạn này')
+      }
+      await this.requestModel.updateOne({
+        _id: id
+      }, {
+        status: 'rejected'
+      })
+      return {
+        status: 200,
+        message: 'Từ chối kết bạn thành công',
+      }
+    } catch (error) {
+      console.log(error)
+      throw new BadRequestException(error)
+    }
+  }
 
 }

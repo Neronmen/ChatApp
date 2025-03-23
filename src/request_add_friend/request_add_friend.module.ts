@@ -6,11 +6,13 @@ import { UserService } from 'src/user/user.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RequestAddFriend, RequestAddFriendSchema } from './schema/request_add_friend.schema';
 import { JwtService } from '@nestjs/jwt';
+import { FriendsModule } from 'src/friends/friends.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: RequestAddFriend.name, schema: RequestAddFriendSchema }]),
-    UserModule
+    UserModule,
+    FriendsModule
   ],
   controllers: [RequestAddFriendController],
   providers: [RequestAddFriendService, JwtService],

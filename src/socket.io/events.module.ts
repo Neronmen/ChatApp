@@ -4,12 +4,15 @@ import { ChatModule } from "src/chat/chat.module";
 import { JwtService } from "@nestjs/jwt";
 import { UserModule } from "src/user/user.module";
 import { RequestAddFriendModule } from "src/request_add_friend/request_add_friend.module";
+import { MongooseModule } from "@nestjs/mongoose";
+import { Conversations, ConversationsSchema } from "src/conversations/schema/conversation.schema";
 
 @Module({
     imports: [
         ChatModule,
         UserModule,
-        RequestAddFriendModule
+        RequestAddFriendModule,
+        MongooseModule.forFeature([{ name: Conversations.name, schema: ConversationsSchema }]),
     ],
     providers: [EventsGateWay, JwtService]
 })

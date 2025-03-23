@@ -9,6 +9,7 @@ import { EventsModule } from './socket.io/events.module';
 import { ChatModule } from './chat/chat.module';
 import { RequestAddFriendModule } from './request_add_friend/request_add_friend.module';
 import { FriendsModule } from './friends/friends.module';
+import { ConversationsModule } from './conversations/conversations.module';
 
 @Module({
   imports: [
@@ -17,6 +18,8 @@ import { FriendsModule } from './friends/friends.module';
     EventsModule,
     ChatModule,
     RequestAddFriendModule,
+    FriendsModule,
+    ConversationsModule,
 
     // Config Env
     ConfigModule.forRoot({
@@ -32,7 +35,7 @@ import { FriendsModule } from './friends/friends.module';
       }),
       inject: [ConfigService],
     }),
-    FriendsModule,
+
 
 
     // End Connect Database MongoDB

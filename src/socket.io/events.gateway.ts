@@ -1,13 +1,16 @@
 import { UseGuards } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { InjectModel } from "@nestjs/mongoose";
 import { MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Request } from "express";
+import { Model } from "mongoose";
 
 import { Socket, Server } from "socket.io"
 import { ChatGuard } from "src/auth/guards/chat.guard";
 import { JWTGuard } from "src/auth/guards/jwt.guard";
 import { ChatService } from "src/chat/chat.service";
 import { CreateChatDto } from "src/chat/dto/create-chat.dto";
+import { Conversations } from "src/conversations/schema/conversation.schema";
 import { uploadToCloudinary } from "src/helpers/uploadToCloundinary";
 import { CreateRequestAddFriendDto } from "src/request_add_friend/dto/create-request_add_friend.dto";
 import { RequestAddFriendService } from "src/request_add_friend/request_add_friend.service";
@@ -27,6 +30,8 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
         private readonly userService: UserService,
         private readonly jwtService: JwtService,
         private readonly requestAddFriendService: RequestAddFriendService,
+        @InjectModel(Conversations.name)
+        private readonly conversationsModel: Model<Conversations>,
     ) { }
 
 
@@ -102,6 +107,15 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
             content: objectMessage.content,
             images: imagesUrl
         })
+        await this.conversationsModel.findOneAndUpdate(
+            { _id: '67def3b97c3a95ec48d1657f' },
+            {
+                $set: {
+                    last_message: objectMessage.content,
+                    last_interacted_at: new Date()
+                }
+            }
+        );
         const user = await this.userService.findById(userID);
         client.broadcast.emit('reply', {
             name: user?.name,
@@ -129,12 +143,12 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
             }
             const { senderID, receiverID } = parsedData
             const result = await this.requestAddFriendService.requestAddFriend(parsedData);
-            console.log(result)
             const receiverSockets = this.usersIdSocket.get(receiverID);
             const userSender = await this.userService.findById(senderID);
             if (userSender) {
                 const { image, name, _id } = userSender
                 const resultTotal = {
+                    id_req: result._id.toString(),
                     sender: {
                         _id,
                         image,
@@ -147,8 +161,6 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
                     this.server.to(receiverSockets).emit('receiveRequest', resultTotal);
                 }
             }
-
-
         } catch (error) {
             console.error("Lỗi khi gửi lời mời kết bạn:", error.message);
             client.emit('error', {

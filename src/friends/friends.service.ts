@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateFriendDto } from './dto/create-friend.dto';
-import { UpdateFriendDto } from './dto/update-friend.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Friends } from './schema/friend.schema';
+import { isValidObjectId, Model, Types } from 'mongoose';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class FriendsService {
-  create(createFriendDto: CreateFriendDto) {
-    return 'This action adds a new friend';
+  constructor(
+    @InjectModel(Friends.name)
+    private readonly friendsModel: Model<Friends>,
+    private readonly userService: UserService,
+  ) { }
+
+  async findAllByUserID(req, status) {
+    const filterQuery: any = {}
+    if (status === "block") {
+      filterQuery.is_blocked = true
+    } else if (status === "favorite") {
+      filterQuery.is_favorite = true
+    }
+    const user: any = await this.userService.findByEmail(req.user.username);
+    const listFriends = await this.friendsModel.find({
+      $and: [
+        {
+          $or: [
+            { user_id: user._id.toString() },
+            { friend_ID: user._id.toString() }
+          ]
+        },
+        filterQuery 
+      ]
+    }).exec();
+    return listFriends;
   }
 
-  findAll() {
-    return `This action returns all friends`;
+
+  async createFriend(data: CreateFriendDto) {
+    const { userID, friendID } = data;
+    await this.friendsModel.create({
+      user_id: userID,
+      friend_ID: friendID
+    })
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} friend`;
-  }
-
-  update(id: number, updateFriendDto: UpdateFriendDto) {
-    return `This action updates a #${id} friend`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} friend`;
-  }
 }
