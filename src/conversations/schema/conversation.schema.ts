@@ -8,11 +8,17 @@ export class Conversations {
     @Prop({ type: String, required: true })
     name: string;
 
+    @Prop({ type: String })
+    image: string;
+
     @Prop({ type: Boolean, default: false })
     isGroup: boolean;
 
     @Prop({ type: [Types.ObjectId], ref: 'User', required: true })
     participants: Types.ObjectId[];
+
+    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+    createdBy: Types.ObjectId
 
     @Prop({ type: String, default: null })
     last_message: string;
