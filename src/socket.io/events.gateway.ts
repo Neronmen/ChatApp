@@ -114,9 +114,10 @@ export class EventsGateWay implements OnGatewayConnection, OnGatewayDisconnect {
             images: imagesUrl
         })
         const conservation = await this.conversationsModel.findOneAndUpdate(
-            { _id: '67def3b97c3a95ec48d1657f' },
+            { _id: objectMessage.conversationID },
             {
                 $set: {
+                    last_user_send: userID,
                     last_message: objectMessage.content,
                     last_interacted_at: new Date()
                 }

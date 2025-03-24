@@ -14,5 +14,10 @@ export class ConversationsController {
     return this.conversationsService.create(data);
   }
 
+  @UseGuards(JWTGuard)
+  @Get('')
+  getAll(@Request() req) {
+    return this.conversationsService.getAllByUserID(req.user);
+  }
 
 }

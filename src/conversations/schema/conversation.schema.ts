@@ -20,6 +20,9 @@ export class Conversations {
     @Prop({ type: Types.ObjectId, ref: 'User', required: true })
     createdBy: Types.ObjectId
 
+    @Prop({ type: Types.ObjectId,ref: 'User', default: null })
+    last_user_send: string;
+
     @Prop({ type: String, default: null })
     last_message: string;
 
