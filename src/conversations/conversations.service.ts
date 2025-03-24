@@ -72,7 +72,7 @@ export class ConversationsService {
             ...chat.toObject(), 
             name_user_send: user?.name || "Unknown", 
           };
-        })
+        }) 
       );
       return result
     } catch (error) {

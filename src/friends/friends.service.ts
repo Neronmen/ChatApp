@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateFriendDto } from './dto/create-friend.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Friends } from './schema/friend.schema';
@@ -10,6 +10,7 @@ export class FriendsService {
   constructor(
     @InjectModel(Friends.name)
     private readonly friendsModel: Model<Friends>,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
   ) { }
 
